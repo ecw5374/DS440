@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout
+    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QTabWidget
 )
 
 from market.contracts import Contract
@@ -15,9 +15,11 @@ from ui.table_view import TableView
 from ui.market_panel import MarketPanel
 from ui.bet_panel import BetPanel
 from ui.action_log_panel import ActionLogPanel
+from ui.assistant_panel import AssistantPanel
 from ui.control_panel import ControlPanel
 from ui.card_bet_dialog import CardBetDialog
 from data.auth import LocalAuthStore
+from assistant.service import AssistantService
 
 
 class MainWindow(QMainWindow):
@@ -46,7 +48,10 @@ class MainWindow(QMainWindow):
         self.market_panel = MarketPanel()
         self.bet_panel = BetPanel()
         self.action_log_panel = ActionLogPanel()
+        self.assistant_panel = AssistantPanel()
         self.control_panel = ControlPanel()
+        self.assistant_service = AssistantService(self.engine, self.contract_manager, self.bettor)
+        self.assistant_panel.set_service(self.assistant_service)
 
         self._build_layout()
         self._wire_signals()
@@ -85,7 +90,18 @@ class MainWindow(QMainWindow):
         top_layout.addLayout(right_layout, 2)
 
         main_layout.addLayout(top_layout)
-        main_layout.addWidget(self.action_log_panel, 1)
+
+        self.bottom_tabs = QTabWidget()
+        self.bottom_tabs.addTab(self.action_log_panel, 'Action Log')
+        self.bottom_tabs.addTab(self.assistant_panel, 'Assistant')
+        self.bottom_tabs.setStyleSheet(
+            '''
+            QTabWidget::pane { border: 1px solid #1d4ed8; border-radius: 8px; background: #020617; }
+            QTabBar::tab { background: #0f172a; color: #e2e8f0; padding: 8px 14px; border-top-left-radius: 6px; border-top-right-radius: 6px; }
+            QTabBar::tab:selected { background: #1d4ed8; }
+            '''
+        )
+        main_layout.addWidget(self.bottom_tabs, 1)
         main_layout.addWidget(self.control_panel)
 
         root.setLayout(main_layout)
