@@ -31,6 +31,8 @@ class MainWindow(QMainWindow):
 
         self.players = self._build_players()
         self.engine = StepHandEngine(self.players, SMALL_BLIND, BIG_BLIND)
+        self.current_bets = 0
+        self.max_bets = 3000
 
         self.contract_manager = ContractManager()
         self.contract_manager.start_new_hand(self.players)
@@ -91,10 +93,28 @@ class MainWindow(QMainWindow):
     def _wire_signals(self):
         self.control_panel.new_hand_btn.clicked.connect(self.start_new_hand)
         self.control_panel.next_step_btn.clicked.connect(self.next_step)
+        #self.control_panel.next_step_btn.clicked.connect(self.run_many_games_step)
         self.control_panel.run_to_end_btn.clicked.connect(self.run_to_end)
         self.bet_panel.place_bet_btn.clicked.connect(self.place_bet)
+        #self.bet_panel.place_bet_btn.clicked.connect(self.place_many_bets)
         self.bet_panel.custom_card_bet_btn.clicked.connect(self.place_custom_card_bet)
 
+    '''
+    def run_many_games_step(self):
+        counter = 0
+        for _ in range(100000):
+            self.engine.step()
+            if self.engine.state is not None:
+                self.contract_manager.update_for_state(self.engine.state)
+
+            if self.engine.phase == 'finished':
+                counter += 1
+                self._settle_market()
+                self.start_new_hand()
+        print(counter)
+
+        self.refresh_ui()
+    '''
     def _persist_bankroll(self):
         self.auth_store.save_bankroll(self.bettor.name, self.bettor.bankroll)
 
@@ -185,6 +205,10 @@ class MainWindow(QMainWindow):
         self.refresh_ui()
 
     def place_bet(self):
+        if self.current_bets >= self.max_bets:
+            self.bet_panel.show_error('Bet limit reached for this hand.')
+            return
+        self.current_bets += 1
         contract_id = self.bet_panel.current_contract_id()
         stake = float(self.bet_panel.stake_input.value())
 
@@ -204,17 +228,23 @@ class MainWindow(QMainWindow):
             bet = self.bettor.place_bet(contract, stake)
         except ValueError as e:
             self.bet_panel.show_error(str(e))
+            self.current_bets -= 1
             return
 
         self._persist_bankroll()
+        '''
         self.bet_panel.show_info(
             f"Placed bet on '{bet.contract_id}'\n"
             f'Stake: {bet.stake:.2f}\n'
             f'Price: {bet.price:.3f}\n'
             f'Shares: {bet.shares:.3f}'
         )
-
+        '''
         self.refresh_ui()
+
+    def place_many_bets(self):
+        for _ in range(1000):
+            self.place_bet()
 
     def _settle_market(self):
         self.contract_manager.settle(
