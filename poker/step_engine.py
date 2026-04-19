@@ -19,16 +19,10 @@ class StepHandEngine:
         self.pending_postflop_start = 0
         self.winners = []
         self.hand_name = None
-        self.action_count = 0
-        self.max_actions = 300 # safety to prevent infinite loops in testing
-        self.hand_cancelled = False
 
     def start_hand(self):
         for p in self.players:
             p.reset_for_new_hand()
-        
-        self.action_count = 0
-        self.hand_cancelled = False
 
         deck = Deck()
         self.state = GameState(
@@ -145,11 +139,6 @@ class StepHandEngine:
         self.dealer_index = (self.dealer_index + 1) % len(self.players)
 
     def step(self):
-        self.action_count += 1
-        if self.action_count > self.max_actions:
-            self.cancel_hand()
-            return
-        
         if self.phase in ("idle", "finished"):
             return
 
@@ -212,8 +201,3 @@ class StepHandEngine:
     def run_to_end(self):
         while self.phase not in ("idle", "finished"):
             self.step()
-
-    def cancel_hand(self):
-        self.hand_cancelled = True
-        self.state.log("Hand cancelled due to excessive actions")
-        self.phase = "finished"

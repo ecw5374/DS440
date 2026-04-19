@@ -20,7 +20,6 @@ class LoginDialog(QDialog):
 
         self.auth = LocalAuthStore()
         self.user_record = None
-        self._logging_in = False
 
         self.title_label = QLabel('Local Demo Login')
         self.title_label.setStyleSheet('font-size: 20px; font-weight: 700; color: #e2e8f0;')
@@ -39,7 +38,7 @@ class LoginDialog(QDialog):
         self.login_btn = QPushButton('Login')
         self.register_btn = QPushButton('Register')
         self.cancel_btn = QPushButton('Cancel')
-        
+
         btn_row = QHBoxLayout()
         btn_row.addWidget(self.login_btn)
         btn_row.addWidget(self.register_btn)
@@ -56,8 +55,6 @@ class LoginDialog(QDialog):
         self.login_btn.clicked.connect(self._handle_login)
         self.register_btn.clicked.connect(self._handle_register)
         self.cancel_btn.clicked.connect(self.reject)
-        self.login_btn.setDefault(True)
-        self.login_btn.setAutoDefault(True)
 
         self.setStyleSheet(
             '''
@@ -80,19 +77,18 @@ class LoginDialog(QDialog):
             QPushButton:hover { background: #3182ce; }
             '''
         )
+
+
+
     def _credentials(self):
         return self.username_input.text().strip(), self.password_input.text()
 
     def _handle_login(self):
-        if self._logging_in:
-            return
-        self._logging_in = True
-        
         username, password = self._credentials()
         user = self.auth.authenticate(username, password)
+
         if not user:
             show_warning(self, "Login Failed", "Invalid username or password.")
-            self._logging_in = False
             return
         self.user_record = user
         self.accept()
@@ -103,7 +99,6 @@ class LoginDialog(QDialog):
             user = self.auth.register_user(username, password)
         except ValueError as exc:
             show_warning(self, 'Registration Failed', str(exc))
-            self._logging_in = False
             return
         self.user_record = user
         show_info(self, 'Registration Complete', f"Created local user '{username}'. You are now logged in.")

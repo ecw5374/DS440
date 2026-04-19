@@ -20,3 +20,29 @@ The desktop app now includes a state-aware Assistant tab. It can answer:
 - recommendation questions such as the best bets available right now
 
 The assistant is deterministic and only uses public game state while a hand is live.
+
+
+## Running on a Fresh Windows System
+
+### Option 1: one-click setup and run
+- Double-click `setup_and_run.bat`
+- This will:
+  - create a local virtual environment if needed
+  - install `PyQt5` from `requirements.txt`
+  - launch the app
+
+### Option 2: direct run if Python and dependencies are already installed
+- Double-click `run_app.bat`
+- Or run:
+
+```bash
+python main.py
+```
+
+### Requirements
+- Python 3.10+ recommended
+- `PyQt5`
+
+### Notes
+- User data is stored locally in `local_data/users.json`
+- The default demo login is `demo / demo`
